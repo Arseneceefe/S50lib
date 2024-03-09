@@ -8,7 +8,29 @@ Created on Sun Feb 25 17:25:27 2024
 
 import socket
 import json
+import geocoder
+from astroquery.simbad import Simbad
+from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+import astropy.units as u
+from datetime import datetime
 global HOST,PORT,cmdid
+global latitude,longitude
+
+def get_coord_object(target_name):
+    result_table = Simbad.query_object(target_name)
+    object_ra = result_table['RA'][0]  # Right Ascension
+    object_dec = result_table['DEC'][0]  # Declination
+    loc = EarthLocation(lat=latitude*u.deg, lon=longitude*u.deg, height=0*u.m)  # Latitude, Longitude, Altitude (in meters)
+    tm=datetime.utcnow()
+    #Convert RA DEC to Alt-Az
+    coord =SkyCoord(object_ra, object_dec,frame='icrs', unit=(u.hourangle, u.deg))
+    # Calculate ALT and AZ coordinates 
+    altaz_coords = coord.transform_to(AltAz(obstime=tm, location=loc))
+    # Extract ALT and AZ values in degrees
+    altitude = altaz_coords.alt.deg
+    azimuth = altaz_coords.az.deg
+    return altitude, azimuth
+
 
 def send_message(data):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
