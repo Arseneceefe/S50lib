@@ -10,25 +10,64 @@ import socket
 import json
 import geocoder
 from astroquery.simbad import Simbad
-from astropy.coordinates import SkyCoord, EarthLocation, AltAz
+from astroquery.ipac.ned import Ned
+from astropy.coordinates import SkyCoord, EarthLocation, AltAz,FK5
 import astropy.units as u
+from astropy.time import Time
+import numpy as np
+import math
 from datetime import datetime
 global HOST,PORT,cmdid
 global latitude,longitude
+
+def ra_dec_to_deg(Hra,MinRa,Sra, Hdec, Mindec, Sdec):
+    ra_deg =Hra+MinRa/60+Sra/3600
+    dec_deg=Hdec+Mindec/60+Sdec/3600
+    return ra_deg, dec_deg
+
+def get_max_theoric_exp_time(cur_ra,cur_dec):
+    print('Theorical max exposure time for IMX462')
+    print('from californiaskys')
+   
+    wearth=0.00418
+    Pixtrav=(3.1416*wearth)/(360*0.0000029)
+    cur_ra=60
+    cur_dec=180
+    latitude=37
+    Ht=np.radians(cur_ra)
+    Lat=np.radians(latitude)
+    Az=np.radians(cur_dec)
+    # Ht=cur_ra
+    # Lat=latitude
+    # Az=cur_dec
+
+    cste=((15.04/3.6)*(2*math.pi/360))*(6.4498/2.9)
+    cste=0.271
+     # Pixels Traversed  =   cst x cos 37deg  x cos 180deg x t / cos 60deg
+    A=(np.cos(Lat)*np.cos(Az))/(np.cos(Ht)*cste)
+    MaxExptime=Pixtrav/A
+    return MaxExptime
 
 def get_coord_object(target_name):
     result_table = Simbad.query_object(target_name)
     object_ra = result_table['RA'][0]  # Right Ascension
     object_dec = result_table['DEC'][0]  # Declination
+    print(object_ra,object_dec)
     loc = EarthLocation(lat=latitude*u.deg, lon=longitude*u.deg, height=0*u.m)  # Latitude, Longitude, Altitude (in meters)
     tm=datetime.utcnow()
     #Convert RA DEC to Alt-Az
-    coord =SkyCoord(object_ra, object_dec,frame='icrs', unit=(u.hourangle, u.deg))
+    #coord =SkyCoord(object_ra, object_dec,frame='icrs', unit=(u.hourangle, u.deg))
+#    coord=SkyCoord(object_ra, object_dec,unit=(u.hourangle,u.deg),frame=FK5(equinox=tm))
+    coord=SkyCoord(object_ra, object_dec,unit=(u.deg),obstime=tm)
+#    coord =SkyCoord(object_ra, object_dec,frame='icrs', unit=(u.deg))
+#    _fk5 = FK5(equinox=Time(Time(datetime.utcnow(), scale='utc').jd, format="jd", scale="utc"))
     # Calculate ALT and AZ coordinates 
-    altaz_coords = coord.transform_to(AltAz(obstime=tm, location=loc))
+#    altaz_coords = coord.transform_to(AltAz(obstime=tm, location=loc))
     # Extract ALT and AZ values in degrees
-    altitude = altaz_coords.alt.deg
-    azimuth = altaz_coords.az.deg
+#    altitude = altaz_coords.alt.deg
+    #azimuth = altaz_coords.az.deg
+    altitude = coord.ra.deg
+    azimuth = coord.dec.deg
     return altitude, azimuth
 
 
