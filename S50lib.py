@@ -20,6 +20,17 @@ from datetime import datetime
 global HOST,PORT,cmdid
 global latitude,longitude
 
+def set_stack_settings(id):
+    print("set stack setting")
+    data = {}
+    data['id'] = id
+    data['method'] = 'set_stack_setting'
+    params = {}
+    params['save_discrete_frame'] = True
+    data['params'] = params
+    json_data =json.dumps(data)
+    send_message(json_data + "\r\n")
+
 def ra_dec_to_deg(Hra,MinRa,Sra, Hdec, Mindec, Sdec):
     ra_deg =Hra+MinRa/60+Sra/3600
     dec_deg=Hdec+Mindec/60+Sdec/3600
