@@ -22,7 +22,7 @@ import math
 ########################################
 #SETUP OF USER (NETWORK INFO AND GEOLOC)
 
-S50.HOST = "192.168.1.169"
+S50.HOST = 
 S50.PORT = 4700
 S50.cmdid = 999
 
@@ -30,8 +30,8 @@ S50.cmdid = 999
 #myloc = geocoder.ip('me')
 #S50.longitude= myloc.lng
 #S50.latitude=myloc.lat
-S50.latitude=48.799815
-S50.longitude=2.257289
+S50.latitude=
+S50.longitude=
 
 is_lp_filter=True
 # END SETUP
