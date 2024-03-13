@@ -39,8 +39,8 @@ is_lp_filter=True
 
 target_name='M42'
 # Get object coordinate from simbad query and convert to Jnow
-cur_ra,cur_dec = S50.get_coord_object(target_name)
-print('Simbad',cur_ra,cur_dec)
+#cur_ra,cur_dec = S50.get_coord_object(target_name)
+#print('Simbad',cur_ra,cur_dec)
 
 target_name='M42'
 cur_ra,cur_dec =S50.ra_dec_to_deg(5,36,28,-5,22,34)
