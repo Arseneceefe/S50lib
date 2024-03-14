@@ -20,6 +20,18 @@ from datetime import datetime
 global HOST,PORT,cmdid
 global latitude,longitude
 
+def set_gain(id,valueparam):
+    print("set gain")
+    data = {}
+    data['id'] = id
+    data['method'] = 'set_control_value'   
+    params = ["gain",valueparam]
+    data['params'] = params
+    json_data =json.dumps(data)
+    print(json_data)
+    send_message(json_data + "\r\n")
+
+
 def set_stack_settings(id):
     print("set stack setting")
     data = {}

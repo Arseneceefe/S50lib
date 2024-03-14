@@ -58,7 +58,8 @@ S50.cmdid+=1;S50.set_stack_settings(S50.cmdid)
 # goto target
 S50.cmdid+=1;S50.goto_target(S50.cmdid,cur_ra, cur_dec, target_name, is_lp_filter)
 
- S50.cmdid+=1;S50.start_stack(S50.cmdid)
+S50.cmdid+=1;S50.start_stack(S50.cmdid)
+S50.cmdid+=1;S50.set_gain(S50.cmdid,110)
 # time.sleep(30*60)
 # S50.cmdid+=1;S50.stop_stack(S50.cmdid)
 
