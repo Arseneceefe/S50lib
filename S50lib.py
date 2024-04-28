@@ -23,10 +23,7 @@ global latitude,longitude
 def set_gain(id,valueparam):
     print("set gain")
     data = {}
-    data['id'] = id
-    data['method'] = 'set_control_value'   
-    params = ["gain",valueparam]
-    data['params'] = params
+    data={"id":id,"method":"set_control_value", "params":["gain",valueparam]}
     json_data =json.dumps(data)
     print(json_data)
     send_message(json_data + "\r\n")
