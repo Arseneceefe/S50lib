@@ -52,15 +52,19 @@ print('seestar',cur_ra,cur_dec)
 Exposure=25000
 # Dithering 12 pix every 20 subs
 S50.cmdid+=1;S50.set_parameter(S50.cmdid,Exposure,500,12,20)
-#save all subs
+# Save all subs
 S50.cmdid+=1;S50.set_stack_settings(S50.cmdid)
+# 
 
 # goto target
 S50.cmdid+=1;S50.goto_target(S50.cmdid,cur_ra, cur_dec, target_name, is_lp_filter)
 
 S50.cmdid+=1;S50.start_stack(S50.cmdid)
-S50.cmdid+=1;S50.set_gain(S50.cmdid,110)
+# Set gain to 130 
+S50.cmdid+=1;S50.set_gain(S50.cmdid,130)
+
 # time.sleep(30*60)
+
 # S50.cmdid+=1;S50.stop_stack(S50.cmdid)
 
 
