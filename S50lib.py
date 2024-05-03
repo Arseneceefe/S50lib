@@ -45,6 +45,26 @@ def ra_dec_to_deg(Hra,MinRa,Sra, Hdec, Mindec, Sdec):
     dec_deg=Hdec+Mindec/60+Sdec/3600
     return ra_deg, dec_deg
 
+def convert_j2000_to_jnow(j2000_ra, j2000_dec):
+# This function performs coordinate transformations from epoch J2000 to epoch on date (JNow).
+# The J2000 coordinates is required to be in decimal format. RA in hours and Dec in degrees.
+# Jari Backman, 'jabamula', jari@sinijari.fi
+    # today
+    tm = datetime.now()
+
+    # J2000 coordinates
+    j2000 = SkyCoord(ra=j2000_ra*u.hour, dec=j2000_dec*u.deg)
+
+    # Transform to JNow
+    jnow = j2000.transform_to(FK5(equinox=tm))
+
+    # Extract JNow coordinates
+    jnow_ra = jnow.ra.hour
+    jnow_dec = jnow.dec.deg
+
+    return jnow_ra, jnow_dec
+
+
 def get_max_theoric_exp_time(cur_ra,cur_dec):
     print('Theorical max exposure time for IMX462')
     print('from californiaskys')
