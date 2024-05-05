@@ -24,12 +24,12 @@ import pandas as pd
 
 
 S50.HOST="10.0.0.1"
-S50.PORT = 4701
+S50.PORT = 4700
 #S50.PORT = 4350
 S50.cmdid = 999
 
 #READ YOUR TARGET LIST FROM EXCEL FILE
-TargerList=pd.read_excel('MyTargetList.xlsx')
+TargerList=pd.read_excel('MyTargetList.xlsx',dtype=object)
 
 #SELECT YOUR TARGET
 Targetname = 'Niobe'
@@ -51,5 +51,6 @@ is_lp_filter=Target['LP_filter'].values[0]
 #S50.cmdid+=1;S50.set_parameter(S50.cmdid,Exposure,500,PixDither,Interv_dither)
 #S50.cmdid+=1;S50.goto_target(S50.cmdid,cur_ra, cur_dec, Targetname, is_lp_filter)
 #S50.cmdid+=1;S50.start_stack(S50.cmdid)
+#S50.cmdid+=1;S50.set_gain(id,gain)
 
 
