@@ -45,12 +45,13 @@ Interv_dither = Target['DitherIntv'].values[0]
 gain = Target['gain'].values[0]
 is_lp_filter=Target['LP_filter'].values[0]
 
-# END SETUP
+
 ########################################
+# convert if necessary to jnow
 #cur_ra, cur_dec = S50.convert_j2000_to_jnow(cur_ra, cur_dec)
 #S50.cmdid+=1;S50.set_parameter(S50.cmdid,Exposure,500,PixDither,Interv_dither)
 #S50.cmdid+=1;S50.goto_target(S50.cmdid,cur_ra, cur_dec, Targetname, is_lp_filter)
 #S50.cmdid+=1;S50.start_stack(S50.cmdid)
-#S50.cmdid+=1;S50.set_gain(id,gain)
+#S50.cmdid+=1;S50.set_gain(S50.cmdid,gain)
 
 
