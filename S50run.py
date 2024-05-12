@@ -54,15 +54,17 @@ Exposure=25000
 # Dithering 12 pix every 20 subs
 S50.cmdid+=1;S50.set_parameter(S50.cmdid,Exposure,500,12,20)
 # Save all subs
-S50.cmdid+=1;S50.set_stack_settings(S50.cmdid)
-# 
+S50.cmdid+=1;S50.set_stack_settings(S50.cmdid,True) 
 
 # goto target
 S50.cmdid+=1;S50.goto_target(S50.cmdid,cur_ra, cur_dec, target_name, is_lp_filter)
 
+# Autofocus : 4 try
+S50.cmdid+=1;S50.autofocus(S50.cmdid)
+
 S50.cmdid+=1;S50.start_stack(S50.cmdid)
-# Set gain to 130 
-S50.cmdid+=1;S50.set_gain(S50.cmdid,130)
+# Set gain to 100 
+S50.cmdid+=1;S50.set_gain(S50.cmdid,100)
 
 # time.sleep(30*60)
 

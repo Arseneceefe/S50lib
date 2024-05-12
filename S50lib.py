@@ -29,15 +29,16 @@ def set_gain(id,valueparam):
     send_message(json_data + "\r\n")
 
 
-def set_stack_settings(id):
+def set_stack_settings(id,status):
     print("set stack setting")
     data = {}
     data['id'] = id
     data['method'] = 'set_stack_setting'
     params = {}
-    params['save_discrete_frame'] = True
+    params['save_discrete_frame'] = status
     data['params'] = params
     json_data =json.dumps(data)
+    print(json_data)
     send_message(json_data + "\r\n")
 
 def ra_dec_to_deg(Hra,MinRa,Sra, Hdec, Mindec, Sdec):
@@ -191,3 +192,27 @@ def goto_target(id,ra, dec, target_name, is_lp_filter):
     data['params'] = params
     json_data =json.dumps(data)
     send_message(json_data + "\r\n")
+    Autogoto_is_working=True
+    while Autogoto_is_working == True:
+        id = id +1
+        Time.sleep(5)
+        mess=json_message(id,"get_app_state")
+        Autogoto_is_working= '"auto_goto":{"is_working":true' in mess
+    print('GOTO '+target_name+ ' completed')
+    
+def autofocus(id):
+    for i in range(1,4):
+        id=id+1
+        json_message(id,"start_auto_focuse")
+        Autofocus_is_working=True
+        while Autofocus_is_working == True:
+            id = id +1
+            Time.sleep(5)
+            mess=json_message(id,"get_app_state")
+            Autofocus_is_working= '"status_flag":1},"is_working":true' in mess
+
+def get_nbframe_stat(id):
+    mess=json_message(id,"get_app_state")
+    frame_stacked = int(mess.split(sep=',')[23].split(sep=':')[1])
+    frame_rejected= int(mess.split(sep=',')[24].split(sep=':')[1])
+    return frame_stacked,frame_rejected
