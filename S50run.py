@@ -43,11 +43,11 @@ target_name='M42'
 #print('Simbad',cur_ra,cur_dec)
 
 target_name='M42'
-cur_ra,cur_dec =S50.ra_dec_to_deg(5,36,28,-5,22,34)
+cur_ra,cur_dec = S50.ra_dec_to_deg(5,36,28,-5,22,34)
 print('seestar',cur_ra,cur_dec)
 
 # CONVERT J2000 to Jnow
-S50.convert_j2000_to_jnow(13.2637,42.0292)
+#cur_ra,cur_dec = S50.convert_j2000_to_jnow(13.2637,42.0292)
 
 # TARGET OBSERVATION
 Exposure=25000
