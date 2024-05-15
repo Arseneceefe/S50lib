@@ -17,6 +17,7 @@ from astropy.time import Time
 import numpy as np
 import math
 from datetime import datetime
+
 global HOST,PORT,cmdid
 global latitude,longitude
 
