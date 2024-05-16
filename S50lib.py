@@ -21,6 +21,17 @@ from datetime import datetime
 global HOST,PORT,cmdid
 global latitude,longitude
 
+def wait_processing(d,h,m):
+    wait_for_seq_process=True
+    if (d==0):
+        wait_for_seq_process=False
+    while wait_for_seq_process==True:
+        time.sleep(60)
+        Tcheck=time.localtime()
+        if ((Tcheck.tm_mday==d)&(Tcheck.tm_hour==h)):
+            if (Tcheck.tm_min>m):
+                wait_for_seq_process=False
+
 def set_gain(id,valueparam):
     print("set gain")
     data = {}
