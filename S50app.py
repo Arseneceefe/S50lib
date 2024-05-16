@@ -34,7 +34,7 @@ S50.longitude=2.257289
 
 TargetSeq=pd.read_excel('S50Target_sequence_config.xlsx',dtype=object)
 
-for i in range(0,TargetSeq.shape[0]-1):
+for i in range(0,TargetSeq.shape[0]):
     S50.wait_processing(TargetSeq['Daybegin'][i],TargetSeq['Hrbegin'][i],TargetSeq['Minbegin'][i])
     S50.cmdid+=1;S50.set_stack_settings(S50.cmdid,eval(TargetSeq['Save All Frame'][i]))
     if eval(TargetSeq['J2000'][i]):
