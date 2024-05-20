@@ -12,7 +12,7 @@ import geocoder
 import time
 from datetime import datetime
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz
-from astropy.time import Time
+from astropy.time import time
 import astropy.units as u
 from astroquery.simbad import Simbad
 from astroquery.ipac.ned import Ned
