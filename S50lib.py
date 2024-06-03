@@ -17,6 +17,7 @@ from astropy.time import Time
 import numpy as np
 import math
 from datetime import datetime
+import time
 
 global HOST,PORT,cmdid
 global latitude,longitude
@@ -26,10 +27,10 @@ def wait_processing(d,h,m):
     if (d==0):
         wait_for_seq_process=False
     while wait_for_seq_process==True:
-        time.sleep(60)
+        time.sleep(20)
         Tcheck=time.localtime()
-        if ((Tcheck.tm_mday==d)&(Tcheck.tm_hour==h)):
-            if (Tcheck.tm_min>m):
+        if ((Tcheck.tm_mday==d)&(Tcheck.tm_hour>=h)):
+            if (Tcheck.tm_min>=m):
                 wait_for_seq_process=False
 
 def set_gain(id,valueparam):
