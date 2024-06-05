@@ -43,10 +43,11 @@ for i in range(0,TargetSeq.shape[0]):
         RA_cur=TargetSeq['RA'][i]
         DEC_cur=TargetSeq['DEC'][i]
     S50.cmdid+=1;S50.goto_target(S50.cmdid,RA_cur, DEC_cur, TargetSeq['NAME'][i], eval(TargetSeq['LP_filter'][i]))
+    S50.cmdid = S50.cmdid+30
     S50.cmdid+=1;S50.set_gain(S50.cmdid,TargetSeq['gain'][i])
     if eval(TargetSeq['Autofocus'][i]):
         S50.cmdid+=1;S50.autofocus(S50.cmdid)
-        S50.cmdid = S50.cmdid+5
+        S50.cmdid = S50.cmdid+30
     S50.cmdid+=1;S50.set_parameter(S50.cmdid,TargetSeq['ExpTime'][i],500,TargetSeq['DitherPix'][i],TargetSeq['DitherIntv'][i])
     S50.cmdid+=1;S50.start_stack(S50.cmdid)
     S50.cmdid+=1;S50.set_gain(S50.cmdid,TargetSeq['gain'][i])

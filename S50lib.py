@@ -214,7 +214,7 @@ def goto_target(id,ra, dec, target_name, is_lp_filter):
     print('GOTO '+target_name+ ' completed')
     
 def autofocus(id):
-    for i in range(1,4):
+    for i in range(1,3):
         id=id+1
         json_message(id,"start_auto_focuse")
         Autofocus_is_working=True
