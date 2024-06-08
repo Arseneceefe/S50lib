@@ -29,7 +29,7 @@ def wait_processing(d,h,m):
     while wait_for_seq_process==True:
         time.sleep(20)
         Tcheck=time.localtime()
-        if ((Tcheck.tm_mday==d)&(Tcheck.tm_hour>=h)):
+        if ((Tcheck.tm_mday>=d)&(Tcheck.tm_hour>=h)):
             if (Tcheck.tm_min>=m):
                 wait_for_seq_process=False
 
@@ -223,6 +223,8 @@ def autofocus(id):
             Time.sleep(5)
             mess=json_message(id,"get_app_state")
             Autofocus_is_working= '"status_flag":1},"is_working":true' in mess
+        time.sleep(10)
+        print('Autofocus completed')
 
 def get_nbframe_stat(id):
     mess=json_message(id,"get_app_state")

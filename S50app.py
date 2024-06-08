@@ -49,7 +49,9 @@ for i in range(0,TargetSeq.shape[0]):
         S50.cmdid+=1;S50.autofocus(S50.cmdid)
         S50.cmdid = S50.cmdid+30
     S50.cmdid+=1;S50.set_parameter(S50.cmdid,TargetSeq['ExpTime'][i],500,TargetSeq['DitherPix'][i],TargetSeq['DitherIntv'][i])
+    time.sleep(2)
     S50.cmdid+=1;S50.start_stack(S50.cmdid)
+    time.sleep(2)
     S50.cmdid+=1;S50.set_gain(S50.cmdid,TargetSeq['gain'][i])
     S50.wait_processing(TargetSeq['Dayend'][i],TargetSeq['Hrend'][i],TargetSeq['Minend'][i])
     S50.cmdid+=1;S50.stop_stack(S50.cmdid)
