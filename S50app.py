@@ -28,14 +28,13 @@ S50.PORT = 4700
 S50.cmdid = 999
 
 
-S50.latitude=48.799815
-S50.longitude=2.257289
-
-
-TargetSeq=pd.read_excel('S50Target_sequence_config.xlsx',dtype=object)
+data=pd.read_excel('S50Target_sequence_config.xlsx',dtype=object)
+TargetSeq=data.dropna()
 
 for i in range(0,TargetSeq.shape[0]):
+
     S50.wait_processing(TargetSeq['Daybegin'][i],TargetSeq['Hrbegin'][i],TargetSeq['Minbegin'][i])
+    print('BEGIN ' + TargetSeq['NAME'][i],time.localtime())
     S50.cmdid+=1;S50.set_stack_settings(S50.cmdid,eval(TargetSeq['Save All Frame'][i]))
     if eval(TargetSeq['J2000'][i]):
         RA_cur,DEC_cur = S50.convert_j2000_to_jnow(TargetSeq['RA'][i],TargetSeq['DEC'][i])
@@ -55,12 +54,11 @@ for i in range(0,TargetSeq.shape[0]):
     S50.cmdid+=1;S50.set_gain(S50.cmdid,TargetSeq['gain'][i])
     S50.wait_processing(TargetSeq['Dayend'][i],TargetSeq['Hrend'][i],TargetSeq['Minend'][i])
     S50.cmdid+=1;S50.stop_stack(S50.cmdid)
-    # Nb_good_frame=0
-    # while Nb_good_frame < TargetSeq['Number valid frame to reach'][i]:
-    #     time.sleep(60)
-    #     S50.cmdid+=1;Nb_good_frame,bad_frame=S50.get_nbframe_stat(S50.cmdid)
-        
-# S50.cmdid+=1;S50.json_message(S50.cmdid,"pi_shutdown")
+    print('END ' + TargetSeq['NAME'][i],time.localtime())
+    if eval(TargetSeq['Shutdown After Target'][i]):
+        time.sleep(10)
+        S50.cmdid+=1;S50.json_message(S50.cmdid,"pi_shutdown")
+        time.sleep(20)
 
 
 
