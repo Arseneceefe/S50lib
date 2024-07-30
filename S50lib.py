@@ -57,7 +57,7 @@ def set_stack_settings(id,status):
 def ra_dec_to_deg(Hra,MinRa,Sra, Hdec, Mindec, Sdec):
     ra_deg =Hra+MinRa/60+Sra/3600
 # Jari Backman, 'jabamula', correction
-    if (Hdec > 0):
+    if (Hdec >= 0):
         dec_deg=Hdec+Mindec/60+Sdec/3600
     else:
         dec_deg=Hdec-Mindec/60-Sdec/3600
