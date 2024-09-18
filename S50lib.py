@@ -18,6 +18,8 @@ import numpy as np
 import math
 from datetime import datetime
 import time
+import ephem
+import pytz
 
 global HOST,PORT,cmdid
 global latitude,longitude
@@ -106,27 +108,13 @@ def get_max_theoric_exp_time(cur_ra,cur_dec):
     MaxExptime=Pixtrav/A
     return MaxExptime
 
-def get_coord_object(target_name):
-    result_table = Simbad.query_object(target_name)
-    object_ra = result_table['RA'][0]  # Right Ascension
-    object_dec = result_table['DEC'][0]  # Declination
-    print(object_ra,object_dec)
-    loc = EarthLocation(lat=latitude*u.deg, lon=longitude*u.deg, height=0*u.m)  # Latitude, Longitude, Altitude (in meters)
+def get_coord_object(target_names):
+    result_table = Simbad.query_objects(target_names)
+    object_ra = result_table['RA']  # Right Ascension
+    object_dec = result_table['DEC']  # Declination
     tm=datetime.utcnow()
-    #Convert RA DEC to Alt-Az
-    #coord =SkyCoord(object_ra, object_dec,frame='icrs', unit=(u.hourangle, u.deg))
-#    coord=SkyCoord(object_ra, object_dec,unit=(u.hourangle,u.deg),frame=FK5(equinox=tm))
     coord=SkyCoord(object_ra, object_dec,unit=(u.deg),obstime=tm)
-#    coord =SkyCoord(object_ra, object_dec,frame='icrs', unit=(u.deg))
-#    _fk5 = FK5(equinox=Time(Time(datetime.utcnow(), scale='utc').jd, format="jd", scale="utc"))
-    # Calculate ALT and AZ coordinates 
-#    altaz_coords = coord.transform_to(AltAz(obstime=tm, location=loc))
-    # Extract ALT and AZ values in degrees
-#    altitude = altaz_coords.alt.deg
-    #azimuth = altaz_coords.az.deg
-    altitude = coord.ra.deg
-    azimuth = coord.dec.deg
-    return altitude, azimuth
+    return coord.ra.deg, coord.dec.deg
 
 
 def send_message(data):
@@ -212,7 +200,7 @@ def goto_target(id,ra, dec, target_name, is_lp_filter):
     Autogoto_is_working=True
     while Autogoto_is_working == True:
         id = id +1
-        Time.sleep(5)
+        time.sleep(5)
         mess=json_message(id,"get_app_state")
         Autogoto_is_working= '"auto_goto":{"is_working":true' in mess
     print('GOTO '+target_name+ ' completed')
@@ -224,7 +212,7 @@ def autofocus(id):
         Autofocus_is_working=True
         while Autofocus_is_working == True:
             id = id +1
-            Time.sleep(5)
+            time.sleep(5)
             mess=json_message(id,"get_app_state")
             Autofocus_is_working= '"status_flag":1},"is_working":true' in mess
         time.sleep(10)
@@ -235,3 +223,26 @@ def get_nbframe_stat(id):
     frame_stacked = int(mess.split(sep=',')[23].split(sep=':')[1])
     frame_rejected= int(mess.split(sep=',')[24].split(sep=':')[1])
     return frame_stacked,frame_rejected
+
+def calc_twilight():
+    S50Observer = ephem.Observer()
+    # Set the date and time 
+    S50Observer.date = datetime.today().strftime('%Y-%m-%d')#"2024-07-14"
+
+    # Location 
+    S50Observer.lon = str(latitude)
+    S50Observer.lat = str(longitude)
+
+    # Elevation 
+    S50Observer.elev = 500
+
+    # To get U.S. Naval Astronomical Almanac values, use these settings
+    S50Observer.pressure = 0
+    S50Observer.horizon = '-0:34'
+
+    # Calculate sunrise, solar noon, and sunset
+    S50Observer.horizon = '-12'  # -6=civil twilight, -12=nautical, -18=astronomical
+    beg_twilight = S50Observer.next_rising(ephem.Sun(), use_center=True)
+    end_twilight = S50Observer.next_setting(ephem.Sun(), use_center=True)
+    return(beg_twilight.datetime().replace(tzinfo=pytz.utc), end_twilight.datetime().replace(tzinfo=pytz.utc))
+    
