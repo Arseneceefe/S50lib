@@ -110,7 +110,7 @@ while loop:
             S50.cmdid+=1;S50.stop_stack(S50.cmdid)
             print(f'{target_names[current_target_id]} is done...')
         except Exception as e:
-            print(e)
+            print(f'Error: {e}')
             continue
     print(f'All {i+1} objects are done')
     if (repeat):
