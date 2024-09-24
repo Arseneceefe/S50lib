@@ -43,7 +43,6 @@ def set_gain(id,valueparam):
     print(json_data)
     send_message(json_data + "\r\n")
 
-
 def set_stack_settings(id,status):
     print("set stack setting")
     data = {}
@@ -85,29 +84,6 @@ def convert_j2000_to_jnow(j2000_ra, j2000_dec):
     return jnow_ra, jnow_dec
 
 
-def get_max_theoric_exp_time(cur_ra,cur_dec):
-    print('Theorical max exposure time for IMX462')
-    print('from californiaskys')
-   
-    wearth=0.00418
-    Pixtrav=(3.1416*wearth)/(360*0.0000029)
-    cur_ra=60
-    cur_dec=180
-    latitude=37
-    Ht=np.radians(cur_ra)
-    Lat=np.radians(latitude)
-    Az=np.radians(cur_dec)
-    # Ht=cur_ra
-    # Lat=latitude
-    # Az=cur_dec
-
-    cste=((15.04/3.6)*(2*math.pi/360))*(6.4498/2.9)
-    cste=0.271
-     # Pixels Traversed  =   cst x cos 37deg  x cos 180deg x t / cos 60deg
-    A=(np.cos(Lat)*np.cos(Az))/(np.cos(Ht)*cste)
-    MaxExptime=Pixtrav/A
-    return MaxExptime
-
 def get_coord_object(target_names):
     result_table = Simbad.query_objects(target_names)
     object_ra = result_table['RA']  # Right Ascension
@@ -121,9 +97,10 @@ def send_message(data):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
         s.sendall(data.encode())
-        data = s.recv(1024)
+        data = s.recv(1024*10)
  
-    print('Received', repr(data))
+    #print('Received', repr(data))
+    return(repr(data))    
 
  
 def json_message(id,instruction):
@@ -131,9 +108,9 @@ def json_message(id,instruction):
     json_data = json.dumps(data)
     print("Sending %s" % json_data)
  
-    send_message(json_data + "\r\n")
+    ret_json = send_message(json_data)
  
-    return json_data
+    return ret_json
 
 def set_parameter(id,exp_time,exp_cont,npix,interval):
     print("set exposure")

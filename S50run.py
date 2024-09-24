@@ -43,12 +43,16 @@ target_seq=sf.target_seq
 target_stack_times = sf.target_stack_times
 target_exptimes = sf.target_exptimes
 target_seq_mode = sf.target_seq_mode
+
+# check that all is well 
+#S50.json_message("test_connection")
+
 # Get object coordinate from simbad query and convert to Jnow
 cur_ra,cur_dec = S50.get_coord_object(target_names)
 
 #target_name='M42'
 #cur_ra,cur_dec = S50.ra_dec_to_deg(5,36,28,-5,22,34)
-#print('seestar',cur_ra,cur_dec)
+print('seestar',cur_ra,cur_dec)
 
 # CONVERT J2000 to Jnow
 cur_ra,cur_dec = S50.convert_j2000_to_jnow(cur_ra,cur_dec)
@@ -84,21 +88,30 @@ else:
         repeat = True
 loop = True
 
+iloop = 0
 while loop:
     for i in range(0, len(target_seq)):
-        current_target_id = target_seq[i]-1
-        current_exposure = target_exptimes[current_target_id]*1000 # ms required
-        current_stack_time = target_stack_times[current_target_id] # s for this one as it is not a S50 param
-        # Set Exposure and Dithering 12 pix every 20 subs
-        S50.cmdid+=1;S50.set_parameter(S50.cmdid,current_exposure,500,12,20)
-        # goto target
-        S50.cmdid+=1;S50.goto_target(S50.cmdid,cur_ra[current_target_id], cur_dec[current_target_id], target_names[current_target_id], is_lp_filter)
-    #    Autofocus - up to 4 attempts
-        S50.cmdid+=1;S50.autofocus(S50.cmdid)
-        S50.cmdid+=1;S50.start_stack(S50.cmdid)
-        time.sleep(current_stack_time) # wait for the total stack to be taken
-        S50.cmdid+=1;S50.stop_stack(S50.cmdid)
-        print(f'{target_names[current_target_id]} is done...')
+        try:
+            current_target_id = target_seq[i]-1
+            current_exposure = target_exptimes[current_target_id]*1000 # ms required
+            current_stack_time = target_stack_times[current_target_id] # s for this one as it is not a S50 param
+            # goto target
+            S50.cmdid+=1;
+            status = S50.goto_target(S50.cmdid,cur_ra[current_target_id], cur_dec[current_target_id], target_names[current_target_id], is_lp_filter)
+            print(status)
+        #    Autofocus - up to 4 attempts
+            if (iloop == 0):    
+                #S50.cmdid+=1;S50.autofocus(S50.cmdid)
+                # Set Exposure and Dithering 12 pix every 20 subs
+                S50.cmdid+=1;S50.set_parameter(S50.cmdid,current_exposure,500,12,20)
+                # check if autofocus is done
+            S50.cmdid+=1;S50.start_stack(S50.cmdid)
+            time.sleep(current_stack_time) # wait for the total stack to be taken
+            S50.cmdid+=1;S50.stop_stack(S50.cmdid)
+            print(f'{target_names[current_target_id]} is done...')
+        except Exception as e:
+            print(e)
+            continue
     print(f'All {i+1} objects are done')
     if (repeat):
         loop = True
