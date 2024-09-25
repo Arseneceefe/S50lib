@@ -1,0 +1,7 @@
+*.xls
+*__pycache__
+*.xlsx
+*.csv
+*.dat
+*.pdf
+*.log

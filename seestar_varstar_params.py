@@ -1,0 +1,1 @@
+ip = '192.168.1.35' # IP address of the Seestar Unit

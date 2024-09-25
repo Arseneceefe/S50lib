@@ -1,177 +1,21 @@
+# -*- coding: utf-8 -*-
+"""
+Created on a cloudy night in 2024
+
+Designed to merge the goodness of seestar_run and S50
+
+@author: skelle
+"""
 import seestar_varstarlib as S50
 import socket
-import json
 import time
 from datetime import datetime, timezone
 import threading
 import sys
 import argparse
-import os
-import schedule_file as sf
 import pandas as pd
+import seestar_varstar_params as params
 
-def send_message(data):
-    global s
-    try:
-        s.sendall(data.encode())  # TODO: would utf-8 or unicode_escaped help here
-    except socket.error as e:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((HOST, PORT))
-        send_message(data)
-
-def get_socket_msg():
-    global s
-    try:
-        data = s.recv(1024 * 60)  # comet data is >50kb
-    except socket.error as e:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((HOST, PORT))
-        data = s.recv(1024 * 60)
-    data = data.decode("utf-8")
-    if is_debug:
-        print("Received :", data)
-    return data
-    
-def receieve_message_thread_fn():
-    global is_watch_events
-    global op_state
-    global s
-        
-    msg_remainder = ""
-    while is_watch_events:
-        #print("checking for msg")
-        data = get_socket_msg()
-        if data:
-            msg_remainder += data
-            first_index = msg_remainder.find("\r\n")
-            
-            while first_index >= 0:
-                first_msg = msg_remainder[0:first_index]
-                msg_remainder = msg_remainder[first_index+2:]            
-                parsed_data = json.loads(first_msg)
-                
-                if 'Event' in parsed_data and parsed_data['Event'] == "AutoGoto":
-                    state = parsed_data['state']
-                    print("AutoGoto state: %s" % state)
-                    if state == "complete" or state == "fail":
-                        op_state = state
-                
-                if is_debug:
-                    print(parsed_data)
-                    
-                first_index = msg_remainder.find("\r\n")
-        time.sleep(1)
-
-def json_message(instruction):
-    global cmdid
-    data = {"id": cmdid, "method": instruction}
-    cmdid += 1
-    json_data = json.dumps(data)
-    if is_debug:
-        print("Sending %s" % json_data)
-    send_message(json_data+"\r\n")
-
-def json_message2(data):
-    if data:
-        json_data = json.dumps(data)
-        if is_debug:
-            print("Sending2 %s" % json_data)
-        resp = send_message(json_data + "\r\n")
-
-
-def goto_target(ra, dec, target_name, exp_time, exp_cont):
-    global cmdid
-    print(f'Setting parameters for {target_name}')
-    data = {}
-    data['id'] = cmdid
-    cmdid += 1
-    data['method'] = 'set_setting'
-    params = {}
-    params['exp_ms'] = {}
-    params['exp_ms']['stack_l']=exp_time
-    params['exp_ms']['continous']=exp_cont
-    data['params'] = params
-    json_message2(data)
-    print("going to target...")
-    data = {}
-    data['id'] = cmdid
-    cmdid += 1
-    data['method'] = 'iscope_start_view'
-    params = {}
-    params['mode'] = 'star'
-    ra_dec = [ra, dec]
-    params['target_ra_dec'] = ra_dec
-    params['target_name'] = target_name
-    data['params'] = params
-    json_message2(data)
-    
-def start_stack():
-    global cmdid
-    print("starting to stack...")
-    data = {}
-    data['id'] = cmdid
-    cmdid += 1
-    data['method'] = 'iscope_start_stack'
-    params = {}
-    params['restart'] = True
-    data['params'] = params
-    json_message2(data)
-
-def stop_stack():
-    global cmdid
-    print("stop stacking...")
-    data = {}
-    data['id'] = cmdid
-    cmdid += 1
-    data['method'] = 'iscope_stop_view'
-    params = {}
-    params['stage'] = 'Stack'
-    data['params'] = params
-    json_message2(data)
-
-def wait_end_op():
-    global op_state
-    op_state = "working"
-    heartbeat_timer = 0
-    while op_state == "working":
-        heartbeat_timer += 1
-        if heartbeat_timer > 5:
-            heartbeat_timer = 0
-            json_message("test_connection")
-        time.sleep(1)
-
-    
-def sleep_with_heartbeat():
-    stacking_timer = 0
-    while stacking_timer < session_time:         # stacking time per segment
-        stacking_timer += 1
-        if stacking_timer % 5 == 0:
-            json_message("test_connection")
-        time.sleep(1)
-
-def parse_ra_to_float(ra_string):
-    # Split the RA string into hours, minutes, and seconds
-    hours, minutes, seconds = map(float, ra_string.split(':'))
-
-    # Convert to decimal degrees
-    ra_decimal = hours + minutes / 60 + seconds / 3600
-
-    return ra_decimal
-    
-def parse_dec_to_float(dec_string):
-    # Split the Dec string into degrees, minutes, and seconds
-    if dec_string[0] == '-':
-        sign = -1
-        dec_string = dec_string[1:]
-    else:
-        sign = 1
-    print(dec_string)
-    degrees, minutes, seconds = map(float, dec_string.split(':'))
-
-    # Convert to decimal degrees
-    dec_decimal = sign * (degrees + minutes / 60 + seconds / 3600)
-
-    return dec_decimal
     
 is_watch_events = True
     
@@ -182,117 +26,138 @@ def main():
     global s
     global cmdid
     global is_watch_events
-    global is_debug
-    is_debug = True
+    global is_debug, logger
     S50.latitude= -35.351835
     S50.longitude= 149.030122
 
+    logger = S50.CreateLogger()
     version_string = "1.0.0b1"
-    print("seestar_run version: ", version_string)
+    logger.debug(f'seestar_run version: {version_string}')
     
-    HOST = '192.168.1.35' # to do
+    HOST = params.ip
     PORT = 4700 
     cmdid = 999
  
-    
-    target_names=sf.target_names
-    target_seq=sf.target_seq
-    target_stack_times = sf.target_stack_times
-    target_exptimes = sf.target_exptimes
-    target_seq_mode = sf.target_seq_mode
+    parser = setup_argparse()
+    args = parser.parse_args()
+    is_debug = args.is_debug
+
+
+    try:
+        target_df = pd.read_csv(args.schedule_file)
+    except Exception as e:
+         logger.error(f'Unable to load schedule - {e}')
+         sys.exit(1)
+    target_names=target_df['Name'].values
+    target_stack_times = target_df['TotalExp'].values
+    target_exptimes = target_df['ExpTime'].values
     
     # Get object coordinate from simbad query and convert to Jnow
-    cur_ra,cur_dec = S50.get_coord_object(target_names)
-
-    #print(f'list of targets {cur_ra, cur_dec}')
+    ras,decs = S50.get_coord_object(target_names)
+    logger.info(f'list of targets {target_names, ras, decs}')
 
     # TARGET OBSERVATIONS
     # determine safe limits for observing
     (twilight_begin, twilght_end) = S50.calc_twilight()
 
-    print(f'Nautical Twilight is from {twilight_begin} to {twilght_end}')
+    logger.info(f'Nautical Twilight is from {twilight_begin} to {twilght_end}')
 
     S50safe = False
     while not S50safe:
         if (twilight_begin <= datetime.now(timezone.utc) <= twilght_end):
             S50safe = True
         else:
-            print('Outside observing times')
-            print(datetime.now(timezone.utc))
-            time.sleep(60)
+            logger.info('Outside observing times - waiting...')
+            logger.info(datetime.now(timezone.utc))
+            time.sleep(1)
+            break
 
     # determine the repetition pattern requested
-    if (target_seq_mode not in ['r']):
-        print(f'target sequence mode not known: {target_seq_mode}')
+    if (args.target_seq_mode not in ['repeat', 'single']):
+        logger.error(f'target sequence mode not known: {args.target_seq_mode}')
         raise RuntimeError()
-    else:
-        if (target_seq_mode == 'r'):
-            print(f'Targets will be cycled repeatedly until dawn - mode {target_seq_mode}')
+    elif (args.target_seq_mode == 'repeat'):
+            logger.info(f'Targets will be cycled repeatedly until dawn - mode {args.target_seq_mode}')
             repeat = True
+    elif (args.target_seq_mode == 'single'):
+            logger.info(f'Targets will be observed in order - mode {args.target_seq_mode}')
+            repeat = False
     loop = True
-    raise RuntimeError
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((HOST, PORT))
-    with s:
-        
-        # flush the socket input stream for garbage
-        #get_socket_msg()
-        
-        if center_RA < 0:
-            json_message("scope_get_equ_coord")
-            data = get_socket_msg()
-            parsed_data = json.loads(data)
-            if parsed_data['method'] == "scope_get_equ_coord":
-                data_result = parsed_data['result']
-                center_RA = float(data_result['ra'])
-                center_Dec = float(data_result['dec'])
-                print(center_RA, center_Dec)
+    if not is_debug:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.connect((HOST, PORT))
+        except Exception as e:
+             logger.error(f'Unable to connect to device')
+             sys.exit(1)
+        with s:
+            # flush the socket input stream for garbage
+            #S50.get_socket_msg()
+            # print input requests
+            print("Received parameters:")
+            print(f"  ip address    :  {HOST}")
+            print(f"  target        :  {target_names[iloop]}")
+            print(f"  RA            :  {ras[iloop]}")
+            print(f"  Dec           :  {decs[iloop]}")
+            print(f"  exp time      :  {target_exptimes[iloop]}")
+            print(f"  session time  :  {target_stack_times[iloop]}")
+            print(f"  debug         :  {is_debug}")
+            sys.exit(1)
+                
+            get_msg_thread = threading.Thread(target=S50.receieve_message_thread_fn)
+            get_msg_thread.start()
             
-        # print input requests
-        print("received parameters:")
-        print("  ip address    : " + HOST)
-        print("  target        : " + target_name)
-        print("  RA            : ", center_RA)
-        print("  Dec           : ", center_Dec)
-        print("  exp time      : ", exp_time)
-        print("  session time  : ", session_time)
-        print("  debug         : ", is_debug)
-        sys.exit()
-               
-        get_msg_thread = threading.Thread(target=receieve_message_thread_fn)
-        get_msg_thread.start()
-        
-        print("goto ", (center_RA, center_Dec))
-        goto_target(center_RA, center_Dec, target_name, exp_time, session_time)
-        wait_end_op()
-        print("Goto operation finished")
-                
-        time.sleep(3)
-                
-        if op_state == "complete":
-            start_stack()    
-            sleep_with_heartbeat()
-            stop_stack()
-            print("Stacking operation finished" + target_name)
-        else:
-            print("Goto failed.")
+            print(f'Slew to {RA, Dec}')
+            S50.goto_target(RA, Dec, target_name, exp_time, session_time)
+            wait_end_op()
+            print("Goto operation finished")
                     
-        
-    print("Finished seestar_run")
-    is_watch_events = False
-    get_msg_thread.join(timeout=5)
-    sys.exit()
-    
+            time.sleep(3)
+                    
+            if op_state == "complete":
+                S50.start_stack()    
+                S50.sleep_with_heartbeat(session_time)
+                S50.stop_stack()
+                print("Stacking operation finished" + target_name)
+            else:
+                print("Goto failed.")
+                        
+            
+        print("Finished seestar_run")
+        is_watch_events = False
+        get_msg_thread.join(timeout=5)
+    # end not debug
+    else:
+         iloop = 0
+         nloops = 0
+         while loop:
+            # show input requests
+            logger.debug("Received parameters:")
+            logger.debug(f"  ip address    :  {HOST}")
+            logger.debug(f"  target        :  {target_names[iloop]}")
+            logger.debug(f"  RA            :  {ras[iloop]}")
+            logger.debug(f"  Dec           :  {decs[iloop]}")
+            logger.debug(f"  exp time      :  {target_exptimes[iloop]}")
+            logger.debug(f"  session time  :  {target_stack_times[iloop]}")
+            logger.debug(f"  debug         :  {is_debug}")
+            logger.info(f'Slew to {target_names[iloop]} : {S50.parse_float_to_ra(ras[iloop]), S50.parse_float_to_dec(decs[iloop])}')
+
+            #S50.goto_target(ras[iloop], decs[iloop], target_names[iloop], target_exptimes[iloop], target_stack_times[iloop])
+            #wait_end_op()
+            logger.debug("Goto operation finished")
+            time.sleep(3)
+            iloop +=1
+            if (iloop>=len(target_names) and repeat):
+                 iloop = 0
+                 nloops +=1
+                 logger.info(f'Loop {nloops} executed')
+            elif (iloop>len(target_names) and not repeat):
+                 loop = False    
     
 def setup_argparse():
     parser = argparse.ArgumentParser(description='Seestar VarStar')
-    parser.add_argument('ip', type=str,
-                        help='Your SeeStar\'s IP address')
-    parser.add_argument('schedule', type=str, help="Observation Target Schedule")
-    parser.add_argument('ra', type=str, help="Right Ascenscion Target")
-    parser.add_argument('dec', type=str, help="Declination Target")
-    parser.add_argument('exp_time', type=int, help="Exposure Time (in seconds)")
-    parser.add_argument('session_time', type=int, help="Time (in seconds) for the stacking session")
+    parser.add_argument('schedule_file', type=str, help="Observation Target Schedule")
+    parser.add_argument('target_seq_mode', type=str, choices=['repeat', 'single'], default='single', help='Schedule Mode: repeat or single loop through targets')
     parser.add_argument('is_debug', type=str, default=False, nargs='?', help="Print debug logs while running.")
 
     return parser
