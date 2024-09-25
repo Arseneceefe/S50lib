@@ -82,6 +82,10 @@ def main():
     elif (args.target_seq_mode == 'single'):
             logger.info(f'Targets will be observed in order - mode {args.target_seq_mode}')
             repeat = False
+
+    # preliminary overall settings
+    S50.set_stack_settings() # set to save frames in the stack
+
     loop = True
     if not is_debug:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -96,10 +96,23 @@ def goto_target(ra, dec, target_name, exp_time, exp_cont):
     ra_dec = [ra, dec]
     params['target_ra_dec'] = ra_dec
     params['target_name'] = target_name
+    params['lp_filter'] = 0 # we don't want to use this filter
     data['params'] = params
     json_message2(data)
 
     
+def set_stack_settings():
+    global cmdid
+    logger.debug("set stack setting to record individual frames")
+    data = {}
+    data['id'] = cmdid
+    cmdid += 1
+    data['method'] = 'set_stack_setting'
+    params = {}
+    params['save_discrete_frame'] = True
+    data['params'] = params
+    json_message2(data)
+
 def start_stack():
     global cmdid
     logger.debug("starting to stack...")
