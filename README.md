@@ -25,3 +25,6 @@ Where the repetition mode can be:
 
 # To note
 For this application the LP filter in not required hence is_lp_filter=False
+
+# to do
+Need to add code to modify the exposure settings
