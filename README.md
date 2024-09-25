@@ -1,44 +1,27 @@
-# S50lib
-Python function for seestar S50 base on seestar run from Kai
-S50lib contains elementary function and global variable
-S50run is the main script to call function and operate seestar :
-########################################
-#SETUP OF USER (NETWORK INFO AND GEOLOC)
+# Seestar_Varstar
+Drawing upon the work of Kai (seestar_run) and Arseneceefe (S50).
 
-S50.HOST = "XXX.X.X.XXX"
-S50.PORT = 4700
-S50.cmdid = 999
+Designed to support observations of variable stars where a set of targets are observed repeatedly over a night. I found that constructing a schedule for seestar_run to do this, while possible, is rather tedious. I also have pruned away some of the functions from seestar_run regarding mosics as these are not required.
 
-# local coordinate
-#myloc = geocoder.ip('me')
-#S50.longitude= myloc.lng
-#S50.latitude=myloc.lat
-S50.latitude= XXX
-S50.longitude=XXX
+# Setup:
 
-is_lp_filter=True
+Modify the seestar_varstar_params.py to set the IP address of your Seestar on you local network
+
+Add the targets you require for the night in a schedule file (e.g. schedule_yyyymmdd.dat) which is formatted thus:
+
+Name,ExpTime,TotalExp
+RU Lup,10,120
+Eta Boo,1,60
+
+At the command line enter:
+
+python seestar_varstar.py schedule_yyyymmdd.dat <repetition mode> <debug boolean>
+
+Where the repetition mode can be:
+
+* repeat - The set of targets is looped repeatedly until dawn
+* single - The set is excuted only once
 # END SETUP
-########################################
 
-target_name='M42'
-# Get object coordinate from simbad query and convert to Jnow
-cur_ra,cur_dec = S50.get_coord_object(target_name)
-print('Simbad',cur_ra,cur_dec)
-
-target_name='M42'
-cur_ra,cur_dec =S50.ra_dec_to_deg(5,36,28,-5,22,34)
-print('seestar',cur_ra,cur_dec)
-
-
-
-# TARGET OBSERVATION
-Exposure=25000
-# Dithering 12 pix every 20 subs
-S50.cmdid+=1;S50.set_parameter(S50.cmdid,Exposure,500,12,20)
-
-# goto target
-S50.cmdid+=1;S50.goto_target(S50.cmdid,cur_ra, cur_dec, target_name, is_lp_filter)
-
- S50.cmdid+=1;S50.start_stack(S50.cmdid)
-# time.sleep(30*60)
-# S50.cmdid+=1;S50.stop_stack(S50.cmdid)
+# To note
+For this application the LP filter in not required hence is_lp_filter=False
